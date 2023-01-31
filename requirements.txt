@@ -1,0 +1,7 @@
+selenium
+matplotlib
+numpy
+pandas
+requests
+beautifulsoup4
+
