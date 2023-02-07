@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     scrape_oddsportal_historical(sport='soccer', country='france', league='ligue-1', start_season='2003-2004', nseasons=1,
                                  current_season='no', max_page=1)
-    # scrape_oddsportal_current_season(sport = 'soccer', country = 'finland', league = 'veikkausliiga', season = '2020', max_page = 25)
+    # scrape_oddsportal_current_season(sport = 'basketball', country = 'usa', league = veikkausliiga', season = '2020', max_page = 25)
     # scrape_oddsportal_specific_season(sport = 'soccer', country = 'finland', league = 'veikkausliiga', season = '2019', max_page = 25)
     # scrape_oddsportal_next_games(sport = 'tennis', country = 'germany', league = 'exhibition-bett1-aces-berlin-women', season = '2020')
 

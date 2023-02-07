@@ -35,9 +35,13 @@ def ffi9(a):
 
 
 def num_pages():
-    c = driver.find_elements(by=By.XPATH, value='//*[@id="pagination"]/a')
-    d = driver.find_element(by=By.XPATH, value=f'//*[@id="pagination"]/a[{len(c)}]')
-    return d.get_attribute('x-page')
+    c = driver.find_elements(by=By.XPATH, value=f'//*[@class="w-6 h-6 bg-no-repeat bg-skip-next"]')
+    max_pg = ""
+    for each in c:
+        max_pg = each.get_attribute(':href')
+    max_pr_stripped = max_pg.split('page')[1].split('/')[1]
+
+    return max_pr_stripped
 
 
 def fi2(a):
@@ -51,8 +55,6 @@ def fi2(a):
 
 def ffi2(a):
     c = driver.find_element(by=By.XPATH, value=a)
-    # if c.get_attribute('class') in ['nob-border', 'table-dummyrow']:
-    #    return False
     if 'deactivate' in c.get_attribute('class'):
         a += '/td[2]/a'
         driver.find_element(by=By.XPATH, value=a).click()
@@ -89,17 +91,24 @@ def get_opening_odd(xpath):
 
 def get_links():
     data = []
-    c = driver.find_elements(by=By.CLASS_NAME, value='deactivate')
+#    c = driver.find_elements(by=By.CLASS_NAME, value='deactivate')
     count = 1
-    for each in c:
-        elements = each.find_element(by=By.XPATH, value='td[2]/a')
-        len_td = len(each.find_elements(by=By.XPATH, value='td'))
-        e2 = each.find_element(by=By.XPATH, value=f'td[{len_td}]').text
-        # print(elements.get_attribute('href'), e2)
-        data += [(elements.get_attribute('href'), e2, count)]
-        count += 1
+    # for each in c:
+    #     elements = each.find_element(by=By.XPATH, value='td[2]/a')
+    #     len_td = len(each.find_elements(by=By.XPATH, value='td'))
+    #     e2 = each.find_element(by=By.XPATH, value=f'td[{len_td}]').text
+    #     # print(elements.get_attribute('href'), e2)
+    #     data += [(elements.get_attribute('href'), e2, count)]
+    #     count += 1
     #driver.close()
     #exit(1)
+    c = driver.find_elements(by=By.XPATH, value=f'//*[@class="flex flex-col w-full text-xs"]')
+    for each in c:
+        elements = each.find_element(by=By.XPATH, value='div/div/a')
+        len_div = len(each.find_elements(by=By.XPATH, value='div/div[1]'))
+        e2 = each.find_element(by=By.XPATH, value=f'div/div/div[{len_div}]/div').text
+        data += [(elements.get_attribute('href'), e2, count)]
+        count += 1
     return data
 
 
@@ -115,7 +124,7 @@ def scrape_oddsportal_historical(sport='football', country='france', league='lig
     '''
     L = ['soccer', 'basketball', 'baseball', 'hockey', 'tennis', 'american-football', 'aussie-rules', 'badminton',
          'bandy', 'beach-volleyball', 'boxing', 'cricket', 'darts', 'esports', 'floorball', 'futsal', 'handball',
-         'mma', 'rugby-league', 'rugby-union', 'tabel-tennis', 'volleyball']
+         'mma', 'rugby-league', 'rugby-union', 'tabel-tennis', 'volleyball', 'water-polo']
 
     while sport not in L:
         sport = input('Please choose a sport among the following list : \n {} \n'.format(L))
@@ -252,31 +261,37 @@ def scrape_page_typeC(page, sport, country, tournament, SEASON):
     link = f'https://www.oddsportal.com/{sport}/{country}/{tournament}-{SEASON}/results/#/page/{page}'
     driver.get(link)
     time.sleep(3)
-    n_count = ffi9('deactivate')
+    # n_count = ffi9('deactivate')
     links = get_links()
-    return get_data_typeC(n_count, links)
+    return get_data_typeC(links)
 
 
-def get_data_typeC(n_count, links):
+def get_data_typeC(links):
     DATA = []
     for each in links:
         # print('We wait 2 seconds')
         print(f'Working on match {each[2]} of {len(links)}')
         L = []
-        driver.get(each[0])
         time.sleep(2)
+        driver.get(each[0])
+        #time.sleep(2)
         # Now we collect all bookmaker
-        for j in range(1, int(each[1]) + 1):  # only first 10 bookmakers displayed
-            # first bookmaker name
-            Book = ffi(f'//*[@id="odds-data-table"]/div[1]/table/tbody/tr[{j}]/td[1]/div/a[2]')
-            Odd_1 = fffi(f'//*[@id="odds-data-table"]/div[1]/table/tbody/tr[{j}]/td[2]/div')  # first home odd
-            Odd_X = fffi(f'//*[@id="odds-data-table"]/div[1]/table/tbody/tr[{j}]/td[3]/div')  # draw odd
-            Odd_2 = fffi(f'//*[@id="odds-data-table"]/div[1]/table/tbody/tr[{j}]/td[4]/div')  # first away odd
-            match = ffi('//*[@id="col-content"]/h1')  # match teams
-            final_score = ffi('//*[@id="event-status"]')
-            date = ffi('//*[@id="col-content"]/p[1]')  # Date and time
-            # print(match, Book, Odd_1, Odd_X, Odd_2, date, final_score, i, '/ 500 ')
-            L = L + [(match, Book, Odd_1, Odd_X, Odd_2, date, final_score)]
+        c = driver.find_elements(by=By.XPATH, value=f'//*[@class="flex text-xs max-sm:h-[60px] h-9 border-b"]')
+        final_score = driver.find_element(by=By.XPATH, value=f'//*[@class="flex max-sm:gap-2 max-sm:!mb-5"]/div[2]/strong').text
+        date = driver.find_element(by=By.XPATH, value=f'//*[@class="flex text-xs font-normal text-gray-dark font-main item-center"]/div[2]').text.split(",")[1]
+        match = driver.find_element(by=By.XPATH, value=f'//*[@class="capitalize font-normal text-[0.70rem] leading-4 max-mt:!hidden"]/p').text
+        check = driver.find_elements(by=By.XPATH, value=f'//*[@class="flex h-8 border-b border-l bg-gray-med_light"]/div')
+        for e in c:
+            Book = e.find_element(by=By.XPATH, value='div/a/p').text
+            Odd_1 = e.find_element(by=By.XPATH, value=f'div[{2}]/div/p').text
+            if len(check) == 4:
+                Odd_2 = e.find_element(by=By.XPATH, value=f'div[{3}]/div/p').text
+                L = L + [(match, Book, Odd_1, Odd_2, date, final_score)]
+            else:
+                Odd_X = e.find_element(by=By.XPATH, value=f'div[{3}]/div/p').text if len(check) == 5 else None
+                Odd_2 = e.find_element(by=By.XPATH, value=f'div[{4}]/div/p').text
+                L = L + [(match, Book, Odd_1, Odd_X, Odd_2, date, final_score)]
+            print(match, Book, Odd_1, Odd_X, Odd_2, date, final_score)
         DATA += L
     print(DATA)
     return DATA
